@@ -8,7 +8,10 @@ const app = express();
 const LocalStrategy = require("passport-local");
 const passport = require("passport");
 const User = require("./models/user");
-const dbUrl = process.env.DB_URL || "mongodb://localhost:27017/trust-key";
+const dbUrl =
+  "mongodb+srv://our-first-user:nSWEeeA5eKVw9Ya@cluster0.2fmap.mongodb.net/trust-key?retryWrites=true&w=majority";
+// || "mongodb://localhost:27017/trust-key";
+const catchAsync = require("./utils/catchAsync");
 mongoose.connect(dbUrl, {
   useNewUrlParser: true,
   useCreateIndex: true,
@@ -46,31 +49,6 @@ app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
-app.use(function (req, res, next) {
-  /*var err = new Error('Not Found');
-   err.status = 404;
-   next(err);*/
-
-  // Website you wish to allow to connect
-  res.setHeader("Access-Control-Allow-Origin", "*");
-
-  // Request methods you wish to allow
-  res.setHeader("Access-Control-Allow-Methods", "POST");
-
-  // Request headers you wish to allow
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,X-Access-Token,XKey,Authorization"
-  );
-
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-
-  // Pass to next layer of middleware
-  next();
-});
 app.get("/", (req, res) => {
   res.send("API running");
 });
@@ -88,18 +66,23 @@ app.get("/fakeUser", async (req, res) => {
   const temp = await User.findOne({});
   res.send(temp);
 });
-app.post("/signup", async (req, res) => {
-  const { username, email, company, password } = req.body;
-  const user = new User({
-    email: email,
-    company: company,
-    username: username,
-  });
-  await user.setPassword(password);
-  await user.save();
-  return user;
-  res.send(user);
-});
+app.post(
+  "/signup",
+  catchAsync(async (req, res, next) => {
+    await User.deleteMany({});
+    const { username, email, company, password } = req.body;
+    const user = new User({
+      email: email,
+      company: company,
+      username: username,
+    });
+    await user.setPassword(password);
+    await user.save();
+    const temp = await User.findOne({});
+    console.log(temp);
+    res.send(user);
+  })
+);
 app.all("*", (req, res, next) => {
   next(new ExpressError("Page Not Found", 404));
 });
