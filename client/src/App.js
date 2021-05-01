@@ -1,16 +1,21 @@
 import "./App.css";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import Signuppage from "./components/signuppage";
-
+import HomeScreen from "./screens/HomeScreen.js";
+import Header from "./components/Header.js";
+import Footer from "./components/Footer.js";
+import { Container } from "react-bootstrap";
 function App() {
   return (
     <Router>
-      <div className="App"></div>
-      <Switch>
-        <Route path="/signup">
-          <Signuppage></Signuppage>
-        </Route>
-      </Switch>
+      <Header></Header>
+      <main>
+        <Container>
+          <Switch>
+            <Route path="/" component={HomeScreen}></Route>
+          </Switch>
+        </Container>
+      </main>
+      <Footer></Footer>
     </Router>
   );
 }
